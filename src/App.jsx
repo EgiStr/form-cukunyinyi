@@ -1,7 +1,16 @@
-export default function App() {
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Order from './pages/Home'; 
+import OrderDetail from './pages/TiketOrder/[id]'; 
+
+function App() {
   return (
-    <h1 className="text-3xl font-bold underline">
-      Hello world!
-    </h1>
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<Order />} />
+        <Route path="/TiketOrder/:id" element={<OrderDetail />} />  
+      </Routes>
+    </Router>
+  );
 }
+
+export default App;
