@@ -29,7 +29,7 @@ const OrderDetail = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-xl font-semibold">Detail Order</h1>
+      <h1 className="text-xl font-semibold">Detail Tiket Order</h1>
       <div className="mt-4">
         <p>Email: {orderData.email}</p>
         <p>Tanggal: {new Date(orderData.date).toLocaleDateString()}</p>
