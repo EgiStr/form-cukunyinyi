@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom'; // Make sure you have react-router-dom installed
+import { useParams } from 'react-router-dom';
+import { ORDERS_PATH } from '../../constant/apiPath';
 
 const OrderDetail = () => {
-  const { id } = useParams(); // Get the order ID from the URL
+  const { id } = useParams(); 
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,7 +12,7 @@ const OrderDetail = () => {
   useEffect(() => {
     const fetchOrderDetail = async () => {
       try {
-        const response = await axios.get(`http://localhost:3001/api/orders/${id}`);
+        const response = await axios.get(`${ORDERS_PATH.POST_ORDER}/${id}`);
         setOrderData(response.data.data);
       } catch (err) {
         setError(err.message);
