@@ -1,28 +1,32 @@
-import React, { useContext } from "react";
-import { ImageContext } from "./ImageContext";
+import React, { useContext, useEffect } from "react";
+import { ImageContext } from "@/pages/KnowMangrove/ImageContext";
 import { useNavigate } from "react-router-dom";
-
+import Layout from "@/components/Layout";
 const Hasil = () => {
   const navigate = useNavigate();
   const { data, setData } = useContext(ImageContext);
-  console.log(data);
+
+  useEffect(()=>{
+    if(!data) resetImage()
+  },[data])
 
   const resetImage = () => {
     navigate("/scan");
   };
   return (
+    <Layout>
     <div className="md:flex md:flex-col justify-center items-center">
       <div className="md:w-[50%] m-3">
         <div className="flex flex-col">
           <img src={data} className="h-52 w-full object-cover rounded-t-xl" />
-          <div className="p-5 bg-green-700 text-center rounded-b-xl space-y-5">
+          <div className="p-5 bg-green-500 text-center rounded-b-xl space-y-5">
             <div className="text-white">
               <p>Jenis Mangrove</p>
               <h1 className="font-bold">Sonneratia Alba</h1>
             </div>
             <div className="text-white">
               <p>Persentase Kemiripan</p>
-              <h1 className="font-bold">Sonneratia Alba</h1>
+              <h1 className="font-bold">100%</h1>
             </div>
           </div>
         </div>
@@ -43,6 +47,7 @@ const Hasil = () => {
         </div>
       </div>
     </div>
+    </Layout>
   );
 };
 
