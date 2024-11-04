@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { ORDERS_PATH } from '../constant/apiPath';
 
+export const API_URL = import.meta.env.VITE_API_URL;
+
 export const uploadImage = async (file) => {
   try {
     const formData = new FormData();
@@ -37,3 +39,5 @@ export const postOrder = async (orderData) => {
     throw new Error(error.response?.data?.message || error.message);
   }
 };
+
+

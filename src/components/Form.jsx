@@ -10,6 +10,7 @@ const RegistrationForm = () => {
     SD: false,
     SMP: false,
     SMA: false,
+    Perguruan_Tingi: false,
   });
   const [paymentType, setPaymentType] = useState("tunai");
   const [loading, setLoading] = useState(false);
@@ -20,6 +21,7 @@ const RegistrationForm = () => {
     userInformation: ''
   });
   const [paymentFile, setPaymentFile] = useState(null);
+  const [showAccountNumber, setShowAccountNumber] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -38,6 +40,7 @@ const RegistrationForm = () => {
         SD: false,
         SMP: false,
         SMA: false,
+        Perguruan_Tingi: false,
       });
     }
   };
@@ -53,7 +56,8 @@ const RegistrationForm = () => {
   const handlePaymentTypeChange = (type) => {
     setPaymentType(type);
     if (type === 'tunai') {
-      setPaymentFile(null);
+      setPaymentFile(null); 
+      setShowAccountNumber(false); 
     }
   };
 
@@ -95,8 +99,8 @@ const RegistrationForm = () => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (!file.type.match(/^image\/(jpeg|png|gif|jpg)$/)) {
-        alert('Mohon upload file gambar (JPEG, PNG, atau GIF)');
+      if (!file.type.match(/^image\/(jpeg|png|jpg)$/)) {
+        alert('Mohon upload file gambar (JPEG, PNG)');
         e.target.value = null;
         return;
       }
@@ -112,10 +116,11 @@ const RegistrationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
       let paymentProofUrl = '';
-      
+  
+      // If payment type is "non-tunai" and payment proof is required
       if (paymentType === 'non-tunai' && paymentFile) {
         try {
           paymentProofUrl = await uploadImage(paymentFile);
@@ -126,12 +131,19 @@ const RegistrationForm = () => {
           setLoading(false);
           return;
         }
+      } else if (paymentType === 'non-tunai' && !paymentFile) {
+        alert('Mohon upload bukti pembayaran untuk metode pembayaran non-tunai.');
+        setLoading(false);
+        return;
+      } else if (paymentType === 'tunai') {
+        // For "tunai" payment, set default payment proof message
+        paymentProofUrl = 'pembayaran Tunai';
       }
-
+  
       const selectedGroupTypes = Object.entries(groupTypes)
         .filter(([, isSelected]) => isSelected)
         .map(([type]) => type);
-
+  
       const finalFormData = {
         email: formData.email,
         date: formData.date,
@@ -143,12 +155,12 @@ const RegistrationForm = () => {
         paymentProof: paymentProofUrl,
         userInformation: formData.userInformation
       };
-
+  
       const apiResponse = await postOrder(finalFormData);
-      
+  
       console.log('Pendaftaran berhasil:', apiResponse);
       alert('Pendaftaran berhasil!');
-      
+  
       // Reset form state
       setFormData({
         email: '',
@@ -160,12 +172,12 @@ const RegistrationForm = () => {
       setVisitorCount(1);
       setParticipationType('individu');
       setPaymentType('tunai');
-      
+  
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) {
         fileInput.value = '';
       }
-
+  
     } catch (error) {
       console.error('Error submit form:', error);
       alert('Terjadi kesalahan: ' + (error.response?.data?.message || error.message));
@@ -174,10 +186,13 @@ const RegistrationForm = () => {
     }
   };
 
+  const handleShowAccountNumber = () => {
+    setShowAccountNumber(!showAccountNumber);
+  };    
 
   return (
     <div
-      className="min-h-screen bg-fixed bg-cover bg-center pt-10 pb-10"
+      className="min-h-screen bg-fixed bg-cover bg-center pt-20 pb-5"
       style={{ backgroundImage: "url('../src/assets/bgForm.png')" }}>
       <div className="bg-white bg-opacity-90 max-w-lg mx-auto p-8 rounded-lg shadow-lg">
         <h1 className="font-semibold mb-2">Form Pendaftaran Ekowisata Mangrove Cukunyinyi</h1>
@@ -250,71 +265,95 @@ const RegistrationForm = () => {
             </div>
           </div>
 
-          {participationType === "individu" ? (
-            <div>
-              <label className="block mb-1">Jumlah Pengunjung</label>
-              <div className="flex items-center">
-                <button
-                  type="button"
-                  onClick={decreaseCount}
-                  className="w-8 h-8 bg-red-500 text-white rounded"
-                >
-                  -
-                </button>
-                <span className="mx-4">{visitorCount}</span>
-                <button
-                  type="button"
-                  onClick={increaseCount}
-                  className="w-8 h-8 bg-green-500 text-white rounded"
-                >
-                  +
-                </button>
-              </div>
+          {participationType === 'individu' ? (
+            <div className="flex items-center space-x-4">
+              <label className="block">Jumlah Pengunjung</label>
+              <button
+                type="button"
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
+                onClick={decreaseCount}
+              >
+                -
+              </button>
+              <span>{visitorCount}</span>
+              <button
+                type="button"
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
+                onClick={increaseCount}
+              >
+                +
+              </button>
             </div>
           ) : (
             <div>
-              <label className="block mb-1">Tipe Grup</label>
-              <div className="flex space-x-4">
-                {Object.keys(groupTypes).map(type => (
-                  <label key={type} className="flex items-center">
-                    <input
-                      type="checkbox"
-                      name={type}
-                      checked={groupTypes[type]}
-                      onChange={handleGroupTypeChange}
-                      className="mr-2"
-                    />
-                    {type}
-                  </label>
-                ))}
-              </div>
+              <p>Pilih jenis grup:</p>
+              {Object.keys(groupTypes).map((groupType) => (
+                <label key={groupType} className="block">
+                  <input
+                    type="checkbox"
+                    name={groupType}
+                    checked={groupTypes[groupType]}
+                    onChange={handleGroupTypeChange}
+                    className="mr-2"
+                  />
+                  {groupType}
+                </label>
+              ))}
             </div>
           )}
 
           <div>
-            <label className="block mb-1">Metode Pembayaran</label>
-            <select
-              name="paymentType"
-              value={paymentType}
-              onChange={(e) => handlePaymentTypeChange(e.target.value)}
-              className="w-full border rounded bg-white px-4 py-2"
-            >
-              <option value="tunai">Tunai</option>
-              <option value="non-tunai">Non Tunai</option>
-            </select>
+            <label className="block mb-1">Tipe Pembayaran</label>
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="paymentType"
+                  value="tunai"
+                  checked={paymentType === "tunai"}
+                  onChange={() => handlePaymentTypeChange("tunai")}
+                  className="mr-2"
+                />
+                Tunai
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="paymentType"
+                  value="non-tunai"
+                  checked={paymentType === "non-tunai"}
+                  onChange={() => handlePaymentTypeChange("non-tunai")}
+                  className="mr-2"
+                />
+                Non-Tunai
+              </label>
+            </div>
           </div>
 
           {paymentType === 'non-tunai' && (
             <div>
-              <label className="block mb-1">Bukti Pembayaran (gambar)</label>
+              <button
+                type="button"
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+                onClick={handleShowAccountNumber}
+              >
+                Lihat Nomor Rekening
+              </button>
+              {showAccountNumber && (
+                <p className="mt-2">Nomor Rekening: 123456789</p>
+              )}
+            </div>
+          )}
+
+          {paymentType === 'non-tunai' && (
+            <div>
+              <label className="block mb-1">Unggah Bukti Pembayaran</label>
               <input
                 type="file"
-                accept="image/*"
                 onChange={handleFileChange}
-                className="w-full border rounded px-4 py-2"
-                required
+                className="w-full border rounded bg-white px-4 py-2"
+                accept="image/*"
               />
-              {loading && <p className="text-sm text-gray-500 mt-1">Mengupload gambar...</p>}
             </div>
           )}
 
@@ -326,16 +365,18 @@ const RegistrationForm = () => {
               onChange={handleInputChange}
               className="w-full border rounded px-4 py-2"
               rows="4"
-              placeholder="Informasi tambahan (jika ada)"
+              placeholder="Informasi tambahan tentang pengunjung"
             />
           </div>
 
           <button
             type="submit"
+            className={`w-full bg-green-600 text-white px-4 py-2 rounded ${
+              loading ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             disabled={loading}
-            className={`w-full py-2 rounded ${loading ? 'bg-gray-500' : 'bg-blue-500 hover:bg-blue-700'} text-white`}
           >
-            {loading ? 'Mengirim...' : 'Daftar'}
+            {loading ? 'Mengirim...' : 'Daftar Sekarang'}
           </button>
         </form>
       </div>

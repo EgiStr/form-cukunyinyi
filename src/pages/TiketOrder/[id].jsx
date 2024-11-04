@@ -37,7 +37,7 @@ const OrderDetail = () => {
         <p>Tujuan Wisata: {orderData.purpose}</p>
         <p>Jumlah Pengunjung: {orderData.touristCount}</p>
         <p>Metode Pembayaran: {orderData.paymentType}</p>
-        <p>Bukti Pembayaran: <img src={orderData.paymentProof} alt="Bukti Pembayaran" /></p>
+        <p>Bukti Pembayaran: <img src={orderData.paymentProof} alt="Pembayaran Melalui Tunai" /></p>
         <p>Informasi Pengunjung: {orderData.userInformation}</p>
       </div>
     </div>
