@@ -8,10 +8,12 @@ import {
   IconPhotoPlus,
   IconCamera,
   IconLoader2,
+  IconArrowLeft,
 } from "@tabler/icons-react";
 import { ImageContext } from "./ImageContext";
 import { useNavigate } from 'react-router-dom';
 import FileInputButton from '@/components/ImageScanUpload';
+
 const KnowMangrove = () => {
   const FACING_MODE_USER = "user";
   const FACING_MODE_ENVIRONMENT = "environment";
@@ -51,8 +53,9 @@ const KnowMangrove = () => {
   
   return (
     <div>
-      <div className="w-full md:w-fit fixed left-1/2 transform -translate-x-1/2 top-2">
-        <div className="flex items-center gap-3 bg-green-700 px-4 mx-2 md:px-12 py-3 rounded-lg">
+      <div className="w-full flex md:w-fit fixed md:left-1/2 md:transform md:-translate-x-1/2 mx-2 top-2">
+        <button className="px-3 bg-white" onClick={()=>navigate("/")}><IconArrowLeft/></button>
+        <div className="flex items-center gap-3 bg-green-700 px-3 md:px-12 py-3 rounded-lg">
           <IconCamera className="text-white" />
           <p className="text-sm text-white">Arahkan kamera ke daun mangrove</p>
         </div>
@@ -60,12 +63,12 @@ const KnowMangrove = () => {
       {capturedImage ? (
         <>
           <div className="flex items-center justify-center w-full h-screen">
-            <img src={capturedImage} className="max-w-full h-auto" />
+            <img src={capturedImage} className="max-w-full h-auto border-2 border-green-400" />
           </div>
           <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
             <button
               onClick={resetImage}
-              className="w-24 h-24 flex justify-center items-center border-[6px] border-red-800 bg-red-200 text-red-800 font-semibold rounded-full"
+              className="w-20 h-20 flex justify-center items-center border-[6px] border-red-800 bg-red-200 text-red-800 font-semibold rounded-full"
             >
               <IconReload size={30} />
             </button>
@@ -93,10 +96,10 @@ const KnowMangrove = () => {
                 facingMode: rotate ? FACING_MODE_USER : FACING_MODE_ENVIRONMENT,
               }}
               screenshotFormat="image/jpeg"
-              className="rounded"
+              className="rounded border-2 border-green-500"
             />
           </div>
-          <div className="fixed bottom-2 left-2">
+          <div className="fixed bottom-2 left-2 md:left-1/3">
             <button
               onClick={toggleRotate}
               className="p-3 bg-gray-200 text-green-800 font-semibold rounded-full"
@@ -112,7 +115,7 @@ const KnowMangrove = () => {
               <IconPhotoScan size={30} />
             </button>
           </div>
-          <div className="fixed bottom-2 right-0 transform -translate-x-2">
+          <div className="fixed bottom-2 right-2 md:right-1/3">
             <FileInputButton onUpload={uploadFile}/>
           </div>
         </>
