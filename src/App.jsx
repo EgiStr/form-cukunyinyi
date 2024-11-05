@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 import Order from '@/pages/Home'; 
 import OrderDetail from '@/pages/TiketOrder/[id]'; 
 import KnowMangrove from '@/pages/KnowMangrove';
 import HasilMangrove from '@/pages/KnowMangrove/hasil';
 import { ImageProvider } from '@/pages/KnowMangrove/ImageContext';
-import { ToastContainer } from 'react-toastify';
 import AdminPage from '@/pages/admin';
 import LoginPage from '@/pages/Login';
 
@@ -12,6 +12,7 @@ function App() {
   return (
     <ImageProvider>
     <Router>
+      <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
       <Routes>
         <Route path="/" element={<Order />} />
         <Route path="/login" element={<LoginPage />} />
