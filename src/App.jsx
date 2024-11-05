@@ -10,10 +10,9 @@ function App() {
     <ImageProvider>
     <Router>
       <Routes>
-        <Route path="/" element={<Order />} />
-        <Route path="/tiket/:id" element={<OrderDetail />} />  
-        <Route path="/scan" element={<KnowMangrove />} />  
-        <Route path="/scan/hasil" element={<HasilMangrove />} />  
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/TiketOrder/:id" element={<OrderDetail />} />  
+        <Route path="/admin/" element={<AdminPage />} />  
       </Routes>
     </Router>
     </ImageProvider>
