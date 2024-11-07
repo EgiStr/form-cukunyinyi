@@ -3,3 +3,18 @@
 @tailwind utilities;
 
 *{font-family: "Poppins", serif;}
+@media print {
+    body {
+      visibility: hidden;
+    }
+    .print-hidden{
+        /* visibility: hidden; */
+        display: none;
+    }
+    #printArea {
+      visibility: visible;
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+  }
