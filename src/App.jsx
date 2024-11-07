@@ -7,6 +7,7 @@ import HasilMangrove from '@/pages/KnowMangrove/hasil';
 import { ImageProvider } from '@/pages/KnowMangrove/ImageContext';
 import AdminPage from '@/pages/admin';
 import LoginPage from '@/pages/Login';
+import AdminOrders from './pages/admin/orders';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/tiket/:id" element={<OrderDetail />} />  
         <Route path="/scan" element={<KnowMangrove />} />  
         <Route path="/scan/hasil" element={<HasilMangrove />} />  
+        <Route path="/admin/orders" element={<AdminOrders />} />  
       </Routes>
     </Router>
     </ImageProvider>
