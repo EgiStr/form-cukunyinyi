@@ -16,10 +16,10 @@ const Hasil = () => {
   return (
     <Layout>
     <div className="md:flex md:flex-col justify-center items-center">
-      <div className="md:w-[50%] m-3">
+      <div className="md:w-[50%] my-24 m-3">
         <div className="flex flex-col">
-          <img src={data} className="h-52 w-full object-contain rounded-t-xl" />
-          <div className="p-5 bg-green-600 text-center space-y-5 rounded-t-[100px]">
+          <img src={data} className="h-72 w-full object-contain rounded-t-xl" />
+          <div className="p-5 bg-green-600 text-center space-y-5">
             <div className="text-white">
               <p>Jenis Mangrove</p>
               <h1 className="font-bold">Sonneratia Alba</h1>
