@@ -249,6 +249,7 @@ const TableOrder = () => {
                 <th className="border border-gray-300 px-4 py-2">Tanggal</th>
                 <th className="border border-gray-300 px-4 py-2">Tujuan Wisata</th>
                 <th className="border border-gray-300 px-4 py-2">Jumlah Pengunjung</th>
+                <th className="border border-gray-300 px-4 py-2">Total Harga</th>
                 <th className="border border-gray-300 px-4 py-2">Metode Pembayaran</th>
                 <th className="border border-gray-300 px-4 py-2">Informasi Pengunjung</th>
                 <th className="border border-gray-300 px-4 py-2">Bukti Pembayaran</th>
@@ -265,6 +266,7 @@ const TableOrder = () => {
                   <td className="border border-gray-300 px-4 py-2">{formatDate(order.date)}</td>
                   <td className="border border-gray-300 px-4 py-2">{order.purpose}</td>
                   <td className="border border-gray-300 px-4 py-2">{order.touristCount} orang</td>
+                  <td className="border border-gray-300 px-4 py-2">{order.totalPrice}</td>
                   <td className="border border-gray-300 px-4 py-2">{order.paymentType}</td>
                   <td className="border border-gray-300 px-4 py-2">{order.userInformation}</td>
                   <td className="border border-gray-300 px-4 py-2">
