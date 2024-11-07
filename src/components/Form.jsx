@@ -1,9 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Swal from 'sweetalert2';
 import { ORDERS_PATH } from '../constant/apiPath'; 
 import { postOrder } from '../service/api.service';
 
 const RegistrationForm = () => {
+  const navigate = useNavigate();
   const [visitorCount, setVisitorCount] = useState(1);
   const [participationType, setParticipationType] = useState("individu");
   const [groupTypes, setGroupTypes] = useState({
@@ -22,6 +25,25 @@ const RegistrationForm = () => {
   });
   const [paymentFile, setPaymentFile] = useState(null);
   const [showAccountNumber, setShowAccountNumber] = useState(false);
+
+  const PRICE_PER_VISITOR = 50000;
+
+  const calculateTotalPrice = () => {
+    if (participationType === 'individu') {
+      return visitorCount * PRICE_PER_VISITOR;
+    } else {
+      const selectedGroupCount = Object.values(groupTypes).filter(Boolean).length;
+      return selectedGroupCount * PRICE_PER_VISITOR;
+    }
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0
+    }).format(price);
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -100,12 +122,12 @@ const RegistrationForm = () => {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.match(/^image\/(jpeg|png|jpg)$/)) {
-        alert('Mohon upload file gambar (JPEG, PNG)');
+        Swal.fire('Error', 'Mohon upload file gambar (JPEG, PNG)', 'error');
         e.target.value = null;
         return;
       }
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        alert('Ukuran file harus kurang dari 5MB');
+        Swal.fire('Error', 'Ukuran file harus kurang dari 5MB', 'error');
         e.target.value = null;
         return;
       }
@@ -120,23 +142,21 @@ const RegistrationForm = () => {
     try {
       let paymentProofUrl = '';
   
-      // If payment type is "non-tunai" and payment proof is required
       if (paymentType === 'non-tunai' && paymentFile) {
         try {
           paymentProofUrl = await uploadImage(paymentFile);
           console.log('Upload berhasil:', paymentProofUrl);
         } catch (uploadError) {
           console.error('Error upload:', uploadError);
-          alert('Error saat upload bukti pembayaran: ' + uploadError.message);
+          Swal.fire('Error', 'Error saat upload bukti pembayaran: ' + uploadError.message, 'error');
           setLoading(false);
           return;
         }
       } else if (paymentType === 'non-tunai' && !paymentFile) {
-        alert('Mohon upload bukti pembayaran untuk metode pembayaran non-tunai.');
+        Swal.fire('Error', 'Mohon upload bukti pembayaran untuk metode pembayaran non-tunai.', 'error');
         setLoading(false);
         return;
       } else if (paymentType === 'tunai') {
-        // For "tunai" payment, set default payment proof message
         paymentProofUrl = 'pembayaran Tunai';
       }
   
@@ -153,15 +173,19 @@ const RegistrationForm = () => {
         touristCount: participationType === 'individu' ? visitorCount : selectedGroupTypes.length,
         paymentType,
         paymentProof: paymentProofUrl,
+        totalPrice: calculateTotalPrice(),
         userInformation: formData.userInformation
       };
   
       const apiResponse = await postOrder(finalFormData);
-  
       console.log('Pendaftaran berhasil:', apiResponse);
-      alert('Pendaftaran berhasil!');
+      Swal.fire('Sukses', 'Pendaftaran berhasil!', 'success');
+      
+      const orderId = apiResponse?.data?.id;
+      if (orderId) {
+        navigate(`/tiket/${orderId}`);
+      }
   
-      // Reset form state
       setFormData({
         email: '',
         date: '',
@@ -180,7 +204,7 @@ const RegistrationForm = () => {
   
     } catch (error) {
       console.error('Error submit form:', error);
-      alert('Terjadi kesalahan: ' + (error.response?.data?.message || error.message));
+      Swal.fire('Error', 'Terjadi kesalahan: ' + (error.response?.data?.message || error.message), 'error');
     } finally {
       setLoading(false);
     }
@@ -188,11 +212,11 @@ const RegistrationForm = () => {
 
   const handleShowAccountNumber = () => {
     setShowAccountNumber(!showAccountNumber);
-  };    
+  };
 
   return (
     <div
-      className="min-h-screen bg-fixed bg-cover bg-center pt-20 pb-5"
+      className="min-h-screen bg-fixed md:px-20 px-4 bg-cover bg-center md:pt-20 pt-[100px] pb-5"
       style={{ backgroundImage: "url('../src/assets/bgForm.png')" }}>
       <div className="bg-white bg-opacity-90 max-w-lg mx-auto p-8 rounded-lg shadow-lg">
         <h1 className="font-semibold mb-2">Form Pendaftaran Ekowisata Mangrove Cukunyinyi</h1>
@@ -266,26 +290,28 @@ const RegistrationForm = () => {
           </div>
 
           {participationType === 'individu' ? (
-            <div className="flex items-center space-x-4">
-              <label className="block">Jumlah Pengunjung</label>
-              <button
-                type="button"
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
-                onClick={decreaseCount}
-              >
-                -
-              </button>
-              <span>{visitorCount}</span>
-              <button
-                type="button"
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
-                onClick={increaseCount}
-              >
-                +
-              </button>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <label className="block">Jumlah Pengunjung</label>
+                <button
+                  type="button"
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
+                  onClick={decreaseCount}
+                >
+                  -
+                </button>
+                <span>{visitorCount}</span>
+                <button
+                  type="button"
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
+                  onClick={increaseCount}
+                >
+                  +
+                </button>
+              </div>
             </div>
           ) : (
-            <div>
+            <div className="space-y-4">
               <p>Pilih jenis grup:</p>
               {Object.keys(groupTypes).map((groupType) => (
                 <label key={groupType} className="block">
@@ -299,6 +325,14 @@ const RegistrationForm = () => {
                   {groupType}
                 </label>
               ))}
+              <div className="bg-green-50 p-4 rounded-lg">
+                <p className="text-green-800 font-semibold">
+                  Total Harga: {formatPrice(calculateTotalPrice())}
+                </p>
+                <p className="text-sm text-green-600">
+                  ({Object.values(groupTypes).filter(Boolean).length} grup × {formatPrice(PRICE_PER_VISITOR)})
+                </p>
+              </div>
             </div>
           )}
 
@@ -368,7 +402,14 @@ const RegistrationForm = () => {
               placeholder="Informasi tambahan tentang pengunjung"
             />
           </div>
-
+          <div className="bg-green-50 p-4 rounded-lg">
+            <p className="text-green-800 font-semibold">
+                Total Harga: {formatPrice(calculateTotalPrice())}
+            </p>
+            <p className="text-sm text-green-600">
+              ({visitorCount} pengunjung × {formatPrice(PRICE_PER_VISITOR)})
+            </p>
+          </div>
           <button
             type="submit"
             className={`w-full bg-green-600 text-white px-4 py-2 rounded ${

@@ -58,6 +58,10 @@ const OrderDetail = () => {
             <p>{orderData.touristCount}</p>
           </div>
           <div>
+            <p className="font-semibold">Total Harga</p>
+            <p>{orderData.totalPrice}</p>
+          </div> 
+          <div>
             <p className="font-semibold">Metode Pembayaran</p>
             <p>{orderData.paymentType}</p>
           </div>
