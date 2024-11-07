@@ -1,27 +1,30 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import Swal from 'sweetalert2';
-import { ORDERS_PATH } from '../constant/apiPath'; 
-import { postOrder } from '../service/api.service';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Swal from "sweetalert2";
+import { ORDERS_PATH } from "../constant/apiPath";
+import { postOrder } from "../service/api.service";
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
   const [visitorCount, setVisitorCount] = useState(1);
   const [participationType, setParticipationType] = useState("individu");
   const [groupTypes, setGroupTypes] = useState({
+    TK: false,
     SD: false,
     SMP: false,
     SMA: false,
-    Perguruan_Tingi: false,
+    Universitas: false,
+    Instansi: false,
+    Keluarga: false,
   });
   const [paymentType, setPaymentType] = useState("tunai");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    date: '',
-    purpose: 'Wisata',
-    userInformation: ''
+    email: "",
+    date: "",
+    purpose: "Wisata",
+    userInformation: "",
   });
   const [paymentFile, setPaymentFile] = useState(null);
   const [showAccountNumber, setShowAccountNumber] = useState(false);
@@ -29,91 +32,96 @@ const RegistrationForm = () => {
   const PRICE_PER_VISITOR = 50000;
 
   const calculateTotalPrice = () => {
-    if (participationType === 'individu') {
-      return visitorCount * PRICE_PER_VISITOR;
-    } else {
-      const selectedGroupCount = Object.values(groupTypes).filter(Boolean).length;
-      return selectedGroupCount * PRICE_PER_VISITOR;
-    }
+    // if (participationType === "individu") {
+    return visitorCount * PRICE_PER_VISITOR;
+    // }
+    // else {
+    //   const selectedGroupCount =
+    //     Object.values(groupTypes).filter(Boolean).length;
+    //   return selectedGroupCount * PRICE_PER_VISITOR;
+    // }
   };
 
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
     }).format(price);
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleParticipationTypeChange = (type) => {
     setParticipationType(type);
-    if (type === 'individu') {
+    if (type === "individu") {
       setVisitorCount(1);
     } else {
       setGroupTypes({
+        TK: false,
         SD: false,
         SMP: false,
         SMA: false,
-        Perguruan_Tingi: false,
+        Universitas: false,
+        Instansi: false,
+        Keluarga: false,
       });
     }
   };
 
   const handleGroupTypeChange = (e) => {
     const { name, checked } = e.target;
-    setGroupTypes(prev => ({
+    setGroupTypes((prev) => ({
       ...prev,
-      [name]: checked
+      [name]: checked,
     }));
   };
 
   const handlePaymentTypeChange = (type) => {
     setPaymentType(type);
-    if (type === 'tunai') {
-      setPaymentFile(null); 
-      setShowAccountNumber(false); 
+    if (type === "tunai") {
+      setPaymentFile(null);
+      setShowAccountNumber(false);
     }
   };
 
   const decreaseCount = () => {
-    setVisitorCount(prev => Math.max(1, prev - 1));
+    setVisitorCount((prev) => Math.max(1, prev - 1));
   };
 
   const increaseCount = () => {
-    setVisitorCount(prev => prev + 1);
+    setVisitorCount((prev) => prev + 1);
   };
 
   const uploadImage = async (file) => {
     try {
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append("image", file);
 
       const response = await axios.post(ORDERS_PATH.UPLOAD_IMAGE, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
 
       if (response.data && response.data.data && response.data.data.path) {
         return response.data.data.path;
       } else {
-        console.error('Unexpected server response:', response.data);
-        throw new Error('Format response server tidak sesuai');
+        console.error("Unexpected server response:", response.data);
+        throw new Error("Format response server tidak sesuai");
       }
     } catch (error) {
-      console.error('Error detail:', error.response || error);
+      console.error("Error detail:", error.response || error);
       throw new Error(
-        error.response?.data?.message || 
-        error.message || 
-        'Terjadi kesalahan saat mengupload gambar'
+        error.response?.data?.message ||
+          error.message ||
+          "Terjadi kesalahan saat mengupload gambar"
       );
     }
   };
@@ -122,12 +130,13 @@ const RegistrationForm = () => {
     const file = e.target.files[0];
     if (file) {
       if (!file.type.match(/^image\/(jpeg|png|jpg)$/)) {
-        Swal.fire('Error', 'Mohon upload file gambar (JPEG, PNG)', 'error');
+        Swal.fire("Error", "Mohon upload file gambar (JPEG, PNG)", "error");
         e.target.value = null;
         return;
       }
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        Swal.fire('Error', 'Ukuran file harus kurang dari 5MB', 'error');
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        Swal.fire("Error", "Ukuran file harus kurang dari 5MB", "error");
         e.target.value = null;
         return;
       }
@@ -138,73 +147,88 @@ const RegistrationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
-      let paymentProofUrl = '';
-  
-      if (paymentType === 'non-tunai' && paymentFile) {
+      let paymentProofUrl = "";
+
+      if (paymentType === "non-tunai" && paymentFile) {
         try {
           paymentProofUrl = await uploadImage(paymentFile);
-          console.log('Upload berhasil:', paymentProofUrl);
+          console.log("Upload berhasil:", paymentProofUrl);
         } catch (uploadError) {
-          console.error('Error upload:', uploadError);
-          Swal.fire('Error', 'Error saat upload bukti pembayaran: ' + uploadError.message, 'error');
+          console.error("Error upload:", uploadError);
+          Swal.fire(
+            "Error",
+            "Error saat upload bukti pembayaran: " + uploadError.message,
+            "error"
+          );
           setLoading(false);
           return;
         }
-      } else if (paymentType === 'non-tunai' && !paymentFile) {
-        Swal.fire('Error', 'Mohon upload bukti pembayaran untuk metode pembayaran non-tunai.', 'error');
+      } else if (paymentType === "non-tunai" && !paymentFile) {
+        Swal.fire(
+          "Error",
+          "Mohon upload bukti pembayaran untuk metode pembayaran non-tunai.",
+          "error"
+        );
         setLoading(false);
         return;
-      } else if (paymentType === 'tunai') {
-        paymentProofUrl = 'pembayaran Tunai';
+      } else if (paymentType === "tunai") {
+        paymentProofUrl = "pembayaran Tunai";
       }
-  
+
       const selectedGroupTypes = Object.entries(groupTypes)
         .filter(([, isSelected]) => isSelected)
         .map(([type]) => type);
-  
+
       const finalFormData = {
         email: formData.email,
         date: formData.date,
         purpose: formData.purpose,
-        touristType: participationType === 'individu' ? 'individual' : 'group',
+        touristType: participationType === "individu" ? "individual" : "group",
         touristGroupType: participationType,
-        touristCount: participationType === 'individu' ? visitorCount : selectedGroupTypes.length,
+        touristCount:
+          participationType === "individu"
+            ? visitorCount
+            : selectedGroupTypes.length,
         paymentType,
         paymentProof: paymentProofUrl,
         totalPrice: calculateTotalPrice(),
-        userInformation: formData.userInformation
+        userInformation: formData.userInformation,
       };
-  
+
       const apiResponse = await postOrder(finalFormData);
-      console.log('Pendaftaran berhasil:', apiResponse);
-      Swal.fire('Sukses', 'Pendaftaran berhasil!', 'success');
-      
+      console.log("Pendaftaran berhasil:", apiResponse);
+      Swal.fire("Sukses", "Pendaftaran berhasil!", "success");
+
       const orderId = apiResponse?.data?.id;
       if (orderId) {
         navigate(`/tiket/${orderId}`);
       }
-  
+
       setFormData({
-        email: '',
-        date: '',
-        purpose: 'Wisata',
-        userInformation: ''
+        email: "",
+        date: "",
+        purpose: "Wisata",
+        userInformation: "",
       });
       setPaymentFile(null);
       setVisitorCount(1);
-      setParticipationType('individu');
-      setPaymentType('tunai');
-  
+      setParticipationType("individu");
+      setPaymentType("tunai");
+
       const fileInput = document.querySelector('input[type="file"]');
       if (fileInput) {
-        fileInput.value = '';
+        fileInput.value = "";
       }
-  
     } catch (error) {
-      console.error('Error submit form:', error);
-      Swal.fire('Error', 'Terjadi kesalahan: ' + (error.response?.data?.message || error.message), 'error');
+      console.error("Error submit form:", error);
+      Swal.fire(
+        "Error",
+        "Terjadi kesalahan: " +
+          (error.response?.data?.message || error.message),
+        "error"
+      );
     } finally {
       setLoading(false);
     }
@@ -217,14 +241,17 @@ const RegistrationForm = () => {
   return (
     <div
       className="min-h-screen bg-fixed md:px-20 px-4 bg-cover bg-center md:pt-20 pt-[100px] pb-5"
-      style={{ backgroundImage: "url('../src/assets/bgForm.png')" }}>
+      style={{ backgroundImage: "url('../src/assets/bgForm.png')" }}
+    >
       <div className="bg-white bg-opacity-90 max-w-lg mx-auto p-8 rounded-lg shadow-lg">
-        <h1 className="font-semibold mb-2">Form Pendaftaran Ekowisata Mangrove Cukunyinyi</h1>
-        <p className="mb-4 text-gray-500">Masuki data dengan benar!</p>
+        <h1 className="font-semibold mb-2 text-xl">
+          Form Pendaftaran Ekowisata Mangrove Cukunyinyi
+        </h1>
+        <p className="mb-4 text-gray-500">Masukkan data dengan benar!</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block mb-1">Email</label>
+            <label className="block mb-1 font-semibold">Email</label>
             <input
               type="email"
               name="email"
@@ -237,7 +264,7 @@ const RegistrationForm = () => {
           </div>
 
           <div>
-            <label className="block mb-1">Tanggal</label>
+            <label className="block mb-1 font-semibold">Tanggal</label>
             <input
               type="date"
               name="date"
@@ -249,7 +276,7 @@ const RegistrationForm = () => {
           </div>
 
           <div>
-            <label className="block mb-1">Tujuan Wisata</label>
+            <label className="block mb-1 font-semibold">Tujuan Wisata</label>
             <select
               name="purpose"
               value={formData.purpose}
@@ -262,7 +289,7 @@ const RegistrationForm = () => {
           </div>
 
           <div>
-            <label className="block mb-1">Ayo Ikut serta!</label>
+            <label className="block mb-1 font-semibold">Ayo Ikut serta!</label>
             <div className="flex items-center space-x-4">
               <label className="flex items-center">
                 <input
@@ -288,31 +315,9 @@ const RegistrationForm = () => {
               </label>
             </div>
           </div>
-
-          {participationType === 'individu' ? (
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <label className="block">Jumlah Pengunjung</label>
-                <button
-                  type="button"
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
-                  onClick={decreaseCount}
-                >
-                  -
-                </button>
-                <span>{visitorCount}</span>
-                <button
-                  type="button"
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
-                  onClick={increaseCount}
-                >
-                  +
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <p>Pilih jenis grup:</p>
+          {participationType !== "individu" && (
+            <div className="space-y-2">
+              <p className="font-semibold">Pilih Jenis Grup:</p>
               {Object.keys(groupTypes).map((groupType) => (
                 <label key={groupType} className="block">
                   <input
@@ -325,19 +330,31 @@ const RegistrationForm = () => {
                   {groupType}
                 </label>
               ))}
-              <div className="bg-green-50 p-4 rounded-lg">
-                <p className="text-green-800 font-semibold">
-                  Total Harga: {formatPrice(calculateTotalPrice())}
-                </p>
-                <p className="text-sm text-green-600">
-                  ({Object.values(groupTypes).filter(Boolean).length} grup × {formatPrice(PRICE_PER_VISITOR)})
-                </p>
-              </div>
             </div>
           )}
+          <div className="space-y-4">
+            <div className="flex items-center space-x-4">
+              <label className="block font-semibold">Jumlah Pengunjung</label>
+              <button
+                type="button"
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
+                onClick={decreaseCount}
+              >
+                -
+              </button>
+              <span>{visitorCount}</span>
+              <button
+                type="button"
+                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
+                onClick={increaseCount}
+              >
+                +
+              </button>
+            </div>
+          </div>
 
           <div>
-            <label className="block mb-1">Tipe Pembayaran</label>
+            <label className="block mb-1 font-semibold">Tipe Pembayaran</label>
             <div className="flex items-center space-x-4">
               <label className="flex items-center">
                 <input
@@ -364,24 +381,26 @@ const RegistrationForm = () => {
             </div>
           </div>
 
-          {paymentType === 'non-tunai' && (
+          {paymentType === "non-tunai" && (
             <div>
               <button
                 type="button"
-                className="bg-blue-500 text-white px-4 py-2 rounded"
+                className="bg-blue-500 text-white text-sm px-4 py-2 rounded"
                 onClick={handleShowAccountNumber}
               >
                 Lihat Nomor Rekening
               </button>
               {showAccountNumber && (
-                <p className="mt-2">Nomor Rekening: 123456789</p>
+                <div className="border rounded p-4">
+                  <p className="mt-2">Nomor Rekening: 123456789</p>
+                </div>
               )}
             </div>
           )}
 
-          {paymentType === 'non-tunai' && (
+          {paymentType === "non-tunai" && (
             <div>
-              <label className="block mb-1">Unggah Bukti Pembayaran</label>
+              <label className="block mb-1 font-semibold">Unggah Bukti Pembayaran</label>
               <input
                 type="file"
                 onChange={handleFileChange}
@@ -392,7 +411,7 @@ const RegistrationForm = () => {
           )}
 
           <div>
-            <label className="block mb-1">Informasi Pengunjung</label>
+            <label className="block mb-1 font-semibold">Kritik & Saran</label>
             <textarea
               name="userInformation"
               value={formData.userInformation}
@@ -403,8 +422,8 @@ const RegistrationForm = () => {
             />
           </div>
           <div className="bg-green-50 p-4 rounded-lg">
-            <p className="text-green-800 font-semibold">
-                Total Harga: {formatPrice(calculateTotalPrice())}
+            <p className="text-green-800 font-semibold text-lg">
+              Total Harga: {formatPrice(calculateTotalPrice())}
             </p>
             <p className="text-sm text-green-600">
               ({visitorCount} pengunjung × {formatPrice(PRICE_PER_VISITOR)})
@@ -413,11 +432,11 @@ const RegistrationForm = () => {
           <button
             type="submit"
             className={`w-full bg-green-600 text-white px-4 py-2 rounded ${
-              loading ? 'opacity-50 cursor-not-allowed' : ''
+              loading ? "opacity-50 cursor-not-allowed" : ""
             }`}
             disabled={loading}
           >
-            {loading ? 'Mengirim...' : 'Daftar Sekarang'}
+            {loading ? "Mengirim..." : "Daftar Sekarang"}
           </button>
         </form>
       </div>
