@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../../components/admin/Sidebar';
+import TableOrder from '../../components/admin/TableOrders';
 
-const AdminPage = () => {
+const AdminOrders = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -40,10 +41,10 @@ const AdminPage = () => {
   return (
     <>
     <Sidebar>
-      Dashboard
+        <TableOrder/>
     </Sidebar>
     </>
   );
 };
 
-export default AdminPage;
+export default AdminOrders;

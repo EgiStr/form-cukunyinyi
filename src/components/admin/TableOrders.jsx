@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
 import { ORDERS_PATH } from '../../constant/apiPath';
 
 const TableOrder = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [orderData, setOrderData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ page: 1, perPage: 10, total: 0 });
@@ -12,62 +13,61 @@ const TableOrder = () => {
   const [error, setError] = useState(null);
   const [isDeletingId, setIsDeletingId] = useState(null);
   const [isRepostingId, setIsRepostingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        navigate('/login', { state: { from: '/order' } });
-        return false;
-      }
-      return token;
-    };
-
-    const fetchTableOrder = async (page) => {
-      try {
-        const token = checkAuth();
-        if (!token) return;
-
-        const config = {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          params: {
-            page,
-            perPage: pagination.perPage,
-          },
-        };
-
-        const response = await axios.get(ORDERS_PATH.INDEX, config);
-
-        if (response.data.success === false) {
-          throw new Error(response.data.message || 'Failed to fetch orders');
-        }
-
-        setOrderData(response.data.data);
-        setPagination(response.data.pagination);
-        setError(null);
-      } catch (err) {
-        if (err.response?.status === 401) {
-          localStorage.removeItem('token');
-          navigate('/login', { state: { from: '/order' } });
-        } else {
-          const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
-          setError(errorMessage);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTableOrder(currentPage);
-  }, [currentPage, navigate, pagination.perPage]);
-
-  useEffect(() => {
-    if (orderData.length === 0 && currentPage > 1) {
-      setCurrentPage(prev => prev - 1);
+  const checkAuth = () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login', { state: { from: '/order' } });
+      return false;
     }
-  }, [orderData.length, currentPage]);
+    return token;
+  };
+
+  const fetchTableOrder = async () => {
+    try {
+      const token = checkAuth();
+      if (!token) return;
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: {
+          page: searchParams.get('page') || 1,
+          perPage: searchParams.get('perPage') || 10,
+          touristType: searchParams.get('touristType'),
+          sort: searchParams.get('sort'),
+          order: searchParams.get('order'),
+        },
+      };
+
+      const response = await axios.get(ORDERS_PATH.INDEX, config);
+
+      if (response.data.success === false) {
+        throw new Error(response.data.message || 'Failed to fetch orders');
+      }
+
+      setOrderData(response.data.data);
+      setPagination(response.data.pagination);
+      setCurrentPage(parseInt(searchParams.get('page') || '1', 10));
+      setError(null);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem('token');
+        navigate('/login', { state: { from: '/order' } });
+      } else {
+        const errorMessage = err.response?.data?.message || err.message || 'An error occurred';
+        setError(errorMessage);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTableOrder();
+  }, [navigate, searchParams]);
 
   const formatDate = (dateString) => {
     try {
@@ -98,7 +98,7 @@ const TableOrder = () => {
       setOrderData(prevOrders => prevOrders.filter(order => order.id !== orderId));
       setPagination(prev => ({
         ...prev,
-        total: prev.total - 1
+        total: prev.total - 1,
       }));
 
       const config = {
@@ -109,9 +109,7 @@ const TableOrder = () => {
 
       await axios.delete(`${ORDERS_PATH.INDEX}/${orderId}`, config);
       alert('Order berhasil dihapus');
-
     } catch (err) {
-      // Restore data on error
       const token = localStorage.getItem('token');
       if (token) {
         try {
@@ -122,22 +120,29 @@ const TableOrder = () => {
             params: {
               page: currentPage,
               perPage: pagination.perPage,
+              touristType: searchParams.get('touristType'),
+              sort: searchParams.get('sort'),
+              order: searchParams.get('order'),
             },
           });
-          
           setOrderData(response.data.data);
           setPagination(response.data.pagination);
         } catch {
           setError('Failed to recover data after delete error');
         }
       }
-      
-      setError(err.response?.data?.message || err.message || 'Failed to delete order');
+      setError(err.response?.data?.message || err.message || 'Gagal menghapus order');
       alert('Gagal menghapus order');
     } finally {
       setIsDeletingId(null);
     }
   };
+
+  const filteredData = useMemo(() => {
+    return orderData.filter((order) =>
+      order.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [orderData, searchTerm]);
 
   const handleRepost = async (order) => {
     if (!window.confirm('Are you sure you want to repost this order?')) return;
@@ -154,7 +159,6 @@ const TableOrder = () => {
 
       const currentDate = new Date().toISOString().split('T')[0];
       const repostData = {
-        email: order.email,
         date: currentDate,
         purpose: order.purpose,
         touristType: order.touristType,
@@ -162,7 +166,7 @@ const TableOrder = () => {
         touristCount: order.touristCount,
         paymentType: order.paymentType,
         paymentProof: order.paymentType === 'tunai' ? 'Pembayaran Tunai' : order.paymentProof,
-        userInformation: order.userInformation
+        userInformation: order.userInformation,
       };
 
       const config = {
@@ -175,17 +179,16 @@ const TableOrder = () => {
 
       const newOrder = {
         ...response.data.data,
-        id: response.data.data.id // Make sure to use the ID from the response
+        id: response.data.data.id,
       };
 
       setOrderData(prevOrders => [newOrder, ...prevOrders]);
       setPagination(prev => ({
         ...prev,
-        total: prev.total + 1
+        total: prev.total + 1,
       }));
 
       alert('Order berhasil direpost');
-
     } catch (err) {
       setError(err.response?.data?.message || err.message || 'Failed to repost order');
       alert('Gagal merepost order');
@@ -195,15 +198,30 @@ const TableOrder = () => {
   };
 
   const handlePreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    if (page > 1) {
+      setSearchParams({ page: page - 1 });
     }
   };
 
   const handleNextPage = () => {
-    if (currentPage < Math.ceil(pagination.total / pagination.perPage)) {
-      setCurrentPage(currentPage + 1);
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const totalPages = Math.ceil(pagination.total / pagination.perPage);
+    if (page < totalPages) {
+      setSearchParams({ page: page + 1 });
     }
+  };
+
+  const handleFilter = (filter) => {
+    const params = new URLSearchParams(searchParams);
+    Object.keys(filter).forEach(key => {
+      if (filter[key]) {
+        params.set(key, filter[key]);
+      } else {
+        params.delete(key);
+      }
+    });
+    setSearchParams(params);
   };
 
   if (loading) {
@@ -240,6 +258,59 @@ const TableOrder = () => {
     <div className="container mx-auto">
       <h1 className="text-2xl font-semibold mb-6">Manajemen Order</h1>
       <div className="bg-white rounded-lg p-2">
+        {/* Filter and Search section */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="space-x-2">
+            <label htmlFor="touristType" className="text-gray-700">Tourist Type:</label>
+            <select
+              id="touristType"
+              value={searchParams.get('touristType') || ''}
+              onChange={(e) => handleFilter({ touristType: e.target.value })}
+              className="px-4 py-2 border border-gray-300 rounded"
+            >
+              <option value="">All</option>
+              <option value="Domestic">Domestic</option>
+              <option value="International">International</option>
+            </select>
+            <label htmlFor="sort" className="text-gray-700">Sort By:</label>
+            <select
+              id="sort"
+              value={searchParams.get('sort') || ''}
+              onChange={(e) => handleFilter({ sort: e.target.value })}
+              className="px-4 py-2 border border-gray-300 rounded"
+            >
+              <option value="">Default</option>
+              <option value="date">Date</option>
+              <option value="touristCount">Tourist Count</option>
+              <option value="totalPrice">Total Price</option>
+            </select>
+            <label htmlFor="order" className="text-gray-700">Order:</label>
+            <select
+              id="order"
+              value={searchParams.get('order') || ''}
+              onChange={(e) => handleFilter({ order: e.target.value })}
+              className="px-4 py-2 border border-gray-300 rounded"
+            >
+              <option value="asc">Ascending</option>
+              <option value="desc">Descending</option>
+            </select>
+          </div>
+        </div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="space-x-2">
+            {/* Search input */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search by email"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="px-4 py-2 border border-gray-300 rounded w-full"
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="overflow-x-auto">
           <table className="table-auto w-full border-collapse border border-gray-300">
             <thead>
@@ -257,7 +328,7 @@ const TableOrder = () => {
               </tr>
             </thead>
             <tbody>
-              {orderData.map((order, index) => (
+              {filteredData.map((order, index) => (
                 <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                   <td className="border border-gray-300 px-4 py-2 text-center">
                     {(currentPage - 1) * pagination.perPage + index + 1}
