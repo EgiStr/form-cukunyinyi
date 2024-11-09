@@ -3,7 +3,7 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { ORDERS_PATH } from "@/constant/apiPath";
 import Layout from "@/components/Layout";
-import logo from '@/assets/logo.png';
+import logo from "@/assets/logo.png";
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -25,7 +25,7 @@ const OrderDetail = () => {
       try {
         const response = await axios.get(`${ORDERS_PATH.POST_ORDER}/${id}`);
         setOrderData(response.data.data);
-        console.log(response.data.data)
+        console.log(response.data.data);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -36,9 +36,33 @@ const OrderDetail = () => {
     fetchOrderDetail();
   }, [id]);
 
-  if (loading) return <div className="mt-[25%] flex flex-col items-center justify-center">Loading...<a href="/" className="mt-3 px-3 py-2 bg-green-500 rounded text-white">Halaman Utama</a></div>;
-  if (error) return <div className="mt-[25%] flex flex-col items-center justify-center">Terjadi Kesalahan!<a href="/" className="mt-3 px-3 py-2 bg-green-500 rounded text-white">Halaman Utama</a></div>;
-  if (!orderData) return <div className="mt-[25%]flex flex-col items-center justify-center">Tiket tidak ditemukan<a href="/" className="mt-3 px-3 py-2 bg-green-500 rounded text-white">Halaman Utama</a></div>;
+  if (loading)
+    return (
+      <div className="mt-[25%] flex flex-col items-center justify-center">
+        Loading...
+        <a href="/" className="mt-3 px-3 py-2 bg-green-500 rounded text-white">
+          Halaman Utama
+        </a>
+      </div>
+    );
+  if (error)
+    return (
+      <div className="mt-[25%] flex flex-col items-center justify-center">
+        Terjadi Kesalahan!
+        <a href="/" className="mt-3 px-3 py-2 bg-green-500 rounded text-white">
+          Halaman Utama
+        </a>
+      </div>
+    );
+  if (!orderData)
+    return (
+      <div className="mt-[25%]flex flex-col items-center justify-center">
+        Tiket tidak ditemukan
+        <a href="/" className="mt-3 px-3 py-2 bg-green-500 rounded text-white">
+          Halaman Utama
+        </a>
+      </div>
+    );
 
   return (
     <Layout>
@@ -78,16 +102,18 @@ const OrderDetail = () => {
               <p className="font-semibold">Metode Pembayaran</p>
               <p>{orderData.paymentType}</p>
             </div>
+            {orderData.paymentProof != "pembayaran Tunai" && (
             <div className="md:space-y-4 print-hidden flex md:flex-row flex-col md:items-center justify-between">
               <p className="font-semibold mb-4">Bukti Pembayaran</p>
-              <a
-                className="border px-3 py-2 rounded-lg text-green-700 border-green-700"
-                href={orderData.paymentProof}
-                target="__blank"
-              >
-                Download Bukti Pembayaran
-              </a>
+                <a
+                  className="border px-3 py-2 rounded-lg text-green-700 border-green-700"
+                  href={orderData.paymentProof}
+                  target="__blank"
+                >
+                  Download Bukti Pembayaran
+                </a>
             </div>
+            )}
             <div className="flex flex-col md:flex-row justify-between w-full">
               <p className="font-semibold">Kritik & Saran</p>
               <p>{orderData.userInformation}</p>
@@ -107,10 +133,14 @@ const OrderDetail = () => {
                 </thead>
                 <tbody>
                   <tr className="text-center">
-                    <td className="p-2">{orderData.purpose} ({orderData.touristGroupType})</td>
+                    <td className="p-2">
+                      {orderData.purpose} ({orderData.touristGroupType})
+                    </td>
                     <td className="p-2">{orderData.touristCount}</td>
                     <td className="p-2">Rp50.000</td>
-                    <td className="p-2 text-lg font-bold">{rupiahFormat(orderData.totalPrice)}</td>
+                    <td className="p-2 text-lg font-bold">
+                      {rupiahFormat(orderData.totalPrice)}
+                    </td>
                   </tr>
                 </tbody>
               </table>
