@@ -5,10 +5,12 @@ import Swal from "sweetalert2";
 import { ORDERS_PATH } from "../constant/apiPath";
 import { postOrder } from "../service/api.service";
 
+
 const RegistrationForm = () => {
   const navigate = useNavigate();
   const [visitorCount, setVisitorCount] = useState(1);
   const [participationType, setParticipationType] = useState("individu");
+  const [groupTypesLainnya, setGroupTypesLainnya] = useState(null);
   const [groupTypes, setGroupTypes] = useState({
     TK: false,
     SD: false,
@@ -17,6 +19,7 @@ const RegistrationForm = () => {
     Universitas: false,
     Instansi: false,
     Keluarga: false,
+    Lainnya: false,
   });
   const [paymentType, setPaymentType] = useState("tunai");
   const [loading, setLoading] = useState(false);
@@ -27,10 +30,21 @@ const RegistrationForm = () => {
     userInformation: "",
   });
   const [paymentFile, setPaymentFile] = useState(null);
-  const [showAccountNumber, setShowAccountNumber] = useState(false);
-
+  const [showAccountNumber, setShowAccountNumber] = useState(true);
+  const NO_REKENING = [
+    {
+      tipe: "mandiri",
+      norek: "32 324 3242",
+      nama: "Ani Swistani",
+    },
+    {
+      tipe: "bca",
+      norek: "101 239 432",
+      nama: "Ani Swistani",
+    },
+  ];
+  
   const PRICE_PER_VISITOR = 50000;
-
   const calculateTotalPrice = () => {
     // if (participationType === "individu") {
     return visitorCount * PRICE_PER_VISITOR;
@@ -71,6 +85,7 @@ const RegistrationForm = () => {
         Universitas: false,
         Instansi: false,
         Keluarga: false,
+        Lainnya: false,
       });
     }
   };
@@ -87,7 +102,6 @@ const RegistrationForm = () => {
     setPaymentType(type);
     if (type === "tunai") {
       setPaymentFile(null);
-      setShowAccountNumber(false);
     }
   };
 
@@ -177,16 +191,23 @@ const RegistrationForm = () => {
         paymentProofUrl = "pembayaran Tunai";
       }
 
+      let groupTypesClone = Object.assign({}, groupTypes);
+      delete groupTypesClone.Lainnya;
+      if (!!groupTypesLainnya) {
+        groupTypesClone[groupTypesLainnya] = true;
+      }
+      console.log(groupTypesClone);
       const selectedGroupTypes = Object.entries(groupTypes)
         .filter(([, isSelected]) => isSelected)
         .map(([type]) => type);
-
       const finalFormData = {
         email: formData.email,
         date: formData.date,
         purpose: formData.purpose,
         touristType: participationType === "individu" ? "individual" : "group",
-        touristGroupType: participationType,
+        touristGroupType: Object.keys(groupTypesClone)
+          .filter((key) => groupTypesClone[key])
+          .join(","),
         touristCount:
           participationType === "individu"
             ? visitorCount
@@ -197,6 +218,7 @@ const RegistrationForm = () => {
         userInformation: formData.userInformation,
       };
 
+      console.log(finalFormData);
       const apiResponse = await postOrder(finalFormData);
       console.log("Pendaftaran berhasil:", apiResponse);
       Swal.fire("Sukses", "Pendaftaran berhasil!", "success");
@@ -238,187 +260,334 @@ const RegistrationForm = () => {
     setShowAccountNumber(!showAccountNumber);
   };
 
+  const copyText = (text) => {
+    navigator.clipboard.writeText(text)
+      .then(() => {
+        alert("No rekening telah tersalin!");
+      })
+  }
   return (
     <div
-      className="min-h-screen bg-fixed md:px-20 px-4 bg-cover bg-center md:pt-20 pt-[100px] pb-5"
-      style={{ backgroundImage: "url('../src/assets/bgForm.png')" }}
+      className="min-h-screen bg-fixed bg-cover bg-center md:pt-20 pt-[100px] pb-5"
+      style={{ backgroundImage: "url('../src/assets/welcome.jpg')" }}
     >
-      <div className="bg-white bg-opacity-90 max-w-lg mx-auto p-8 rounded-lg shadow-lg">
-        <h1 className="font-semibold mb-2 text-xl">
+      <div className="bg-white bg-opacity-90 backdrop-blur-md w-full lg:w-6/12 md:w-9/12 mx-auto p-8 rounded-lg shadow-lg">
+        <h1 className="font-semibold mb-2 text-xl md:text-2xl">
           Form Pendaftaran Ekowisata Mangrove Cukunyinyi
         </h1>
-        <p className="mb-4 text-gray-500">Masukkan data dengan benar!</p>
+        <p className="mb-4 text-gray-800">Masukkan data dengan benar</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block mb-1 font-semibold">Email</label>
+            <label className="flex gap-1 my-2 font-semibold">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                class="icon icon-tabler icons-tabler-filled icon-tabler-mail"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M22 7.535v9.465a3 3 0 0 1 -2.824 2.995l-.176 .005h-14a3 3 0 0 1 -2.995 -2.824l-.005 -.176v-9.465l9.445 6.297l.116 .066a1 1 0 0 0 .878 0l.116 -.066l9.445 -6.297z" />
+                <path d="M19 4c1.08 0 2.027 .57 2.555 1.427l-9.555 6.37l-9.555 -6.37a2.999 2.999 0 0 1 2.354 -1.42l.201 -.007h14z" />
+              </svg>
+              Email Anda
+            </label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full border rounded px-4 py-2"
+              className="w-full border rounded-lg px-4 py-2"
               placeholder="Email"
               required
             />
           </div>
 
           <div>
-            <label className="block mb-1 font-semibold">Tanggal</label>
+            <label className="flex gap-1 my-2 font-semibold">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="icon icon-tabler icons-tabler-outline icon-tabler-calendar-event"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z" />
+                <path d="M16 3l0 4" />
+                <path d="M8 3l0 4" />
+                <path d="M4 11l16 0" />
+                <path d="M8 15h2v2h-2z" />
+              </svg>
+              Tanggal
+            </label>
             <input
               type="date"
               name="date"
               value={formData.date}
               onChange={handleInputChange}
-              className="w-full border rounded px-4 py-2"
+              className="w-full border rounded-lg px-4 py-2"
               required
             />
           </div>
 
           <div>
-            <label className="block mb-1 font-semibold">Tujuan Wisata</label>
+            <label className="flex gap-1 my-2 font-semibold">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="icon icon-tabler icons-tabler-outline icon-tabler-luggage"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M6 6m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z" />
+                <path d="M9 6v-1a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v1" />
+                <path d="M6 10h12" />
+                <path d="M6 16h12" />
+                <path d="M9 20v1" />
+                <path d="M15 20v1" />
+              </svg>
+              Tujuan
+            </label>
             <select
               name="purpose"
               value={formData.purpose}
               onChange={handleInputChange}
-              className="w-full border rounded bg-white px-4 py-2"
+              className="w-full border rounded-lg bg-white px-4 py-2"
             >
               <option value="Wisata">Wisata</option>
               <option value="Penelitian">Penelitian</option>
             </select>
           </div>
 
-          <div>
-            <label className="block mb-1 font-semibold">Ayo Ikut serta!</label>
+          <div className="p-4 bg-white rounded-lg space-y-3 border">
+            <label className="flex gap-1 my-2 font-semibold">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="icon icon-tabler icons-tabler-outline icon-tabler-trekking"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M12 4m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+                <path d="M7 21l2 -4" />
+                <path d="M13 21v-4l-3 -3l1 -6l3 4l3 2" />
+                <path d="M10 14l-1.827 -1.218a2 2 0 0 1 -.831 -2.15l.28 -1.117a2 2 0 0 1 1.939 -1.515h1.439l4 1l3 -2" />
+                <path d="M17 12v9" />
+                <path d="M16 20h2" />
+              </svg>
+              Bepergian Secara?
+            </label>
             <div className="flex items-center space-x-4">
-              <label className="flex items-center">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   name="participation"
                   value="individu"
                   checked={participationType === "individu"}
                   onChange={() => handleParticipationTypeChange("individu")}
-                  className="mr-2"
+                  className="form-radio h-5 w-5"
                 />
                 Individu
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   name="participation"
                   value="grup"
                   checked={participationType === "grup"}
                   onChange={() => handleParticipationTypeChange("grup")}
-                  className="mr-2"
+                  className="form-radio h-5 w-5"
                 />
-                Grup
+                Grup Besar
               </label>
             </div>
-          </div>
-          {participationType !== "individu" && (
-            <div className="space-y-2">
-              <p className="font-semibold">Pilih Jenis Grup:</p>
-              {Object.keys(groupTypes).map((groupType) => (
-                <label key={groupType} className="block">
+            {participationType !== "individu" && (
+              <div className="space-y-2">
+                <p className="font-semibold">Pilih Jenis Grup:</p>
+                {Object.keys(groupTypes).map((groupType) => (
+                  <label
+                    key={groupType}
+                    className="flex items-center gap-2 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      name={groupType}
+                      checked={groupTypes[groupType]}
+                      onChange={handleGroupTypeChange}
+                      className="form-radio h-5 w-5"
+                    />
+                    {groupType}
+                  </label>
+                ))}
+                {groupTypes.Lainnya && (
                   <input
-                    type="checkbox"
-                    name={groupType}
-                    checked={groupTypes[groupType]}
-                    onChange={handleGroupTypeChange}
-                    className="mr-2"
+                    type="text"
+                    onChange={(e) => setGroupTypesLainnya(e.target.value)}
+                    className="w-full border rounded-lg px-4 py-2"
+                    placeholder="Nama Grup"
+                    required
                   />
-                  {groupType}
-                </label>
-              ))}
-            </div>
-          )}
-          <div className="space-y-4">
-            <div className="flex items-center space-x-4">
-              <label className="block font-semibold">Jumlah Pengunjung</label>
-              <button
-                type="button"
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
-                onClick={decreaseCount}
-              >
-                -
-              </button>
-              <span>{visitorCount}</span>
-              <button
-                type="button"
-                className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
-                onClick={increaseCount}
-              >
-                +
-              </button>
+                )}
+              </div>
+            )}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <label className="block font-semibold">Jumlah Pengunjung</label>
+                <button
+                  type="button"
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
+                  onClick={decreaseCount}
+                >
+                  -
+                </button>
+                <span>{visitorCount}</span>
+                <button
+                  type="button"
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-3 py-1 rounded"
+                  onClick={increaseCount}
+                >
+                  +
+                </button>
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block mb-1 font-semibold">Tipe Pembayaran</label>
+          <div className="bg-white p-3 rounded-lg border">
+            <label className="flex gap-1 my-2 font-semibold">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="icon icon-tabler icons-tabler-outline icon-tabler-wallet"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" />
+                <path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" />
+              </svg>
+              Tipe Pembayaran
+            </label>
             <div className="flex items-center space-x-4">
-              <label className="flex items-center">
+              <label className="flex items-center gap-2 p-3 cursor-pointer">
                 <input
                   type="radio"
                   name="paymentType"
                   value="tunai"
                   checked={paymentType === "tunai"}
                   onChange={() => handlePaymentTypeChange("tunai")}
-                  className="mr-2"
+                  className="form-radio h-5 w-5"
                 />
                 Tunai
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center gap-2 p-3 cursor-pointer">
                 <input
                   type="radio"
                   name="paymentType"
                   value="non-tunai"
                   checked={paymentType === "non-tunai"}
                   onChange={() => handlePaymentTypeChange("non-tunai")}
-                  className="mr-2"
+                  className="form-radio h-5 w-5"
                 />
-                Non-Tunai
+                <span className="text-gray-700 font-medium">Non-Tunai</span>
               </label>
             </div>
-          </div>
-
-          {paymentType === "non-tunai" && (
-            <div>
-              <button
+            {paymentType === "non-tunai" && (
+              <div>
+                {/* <button
                 type="button"
-                className="bg-blue-500 text-white text-sm px-4 py-2 rounded"
+                className="bg-blue-500 text-white text-sm p-2 rounded"
                 onClick={handleShowAccountNumber}
               >
                 Lihat Nomor Rekening
-              </button>
-              {showAccountNumber && (
-                <div className="border rounded p-4">
-                  <p className="mt-2">Nomor Rekening: 123456789</p>
-                </div>
-              )}
-            </div>
-          )}
+              </button> */}
+                {
+                  NO_REKENING.map((rek, index) => (
+                    <div key={index} className="p-2">
+                      <div className="flex items-center gap-4">
+                        <img
+                          src={`../src/assets/${rek.tipe}.png`}
+                          className="w-10"
+                        />
+                        <div className="space-x-3">
+                          <span>{rek.tipe.toUpperCase()}</span>
+                          <span className="font-bold" onClick={(e)=>{
+                            copyText(e.target.innerText)
+                          }}>{rek.norek}</span>
+                          <span>({rek.nama})</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
 
-          {paymentType === "non-tunai" && (
-            <div>
-              <label className="block mb-1 font-semibold">Unggah Bukti Pembayaran</label>
-              <input
-                type="file"
-                onChange={handleFileChange}
-                className="w-full border rounded bg-white px-4 py-2"
-                accept="image/*"
-              />
-            </div>
-          )}
+            {paymentType === "non-tunai" && (
+              <div>
+                <label className="block my-2 font-semibold">
+                  Unggah Bukti Pembayaran
+                </label>
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  className="w-full border rounded bg-white px-4 py-2"
+                  accept="image/*"
+                />
+              </div>
+            )}
+          </div>
 
           <div>
-            <label className="block mb-1 font-semibold">Kritik & Saran</label>
+            <label className="flex gap-1 my-2 font-semibold">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="icon icon-tabler icons-tabler-outline icon-tabler-note"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M13 20l7 -7" />
+                <path d="M13 20v-6a1 1 0 0 1 1 -1h6v-7a2 2 0 0 0 -2 -2h-12a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7" />
+              </svg>
+              Kritik & Saran
+            </label>
             <textarea
               name="userInformation"
               value={formData.userInformation}
               onChange={handleInputChange}
               className="w-full border rounded px-4 py-2"
               rows="4"
-              placeholder="Informasi tambahan tentang pengunjung"
+              placeholder="Kritik & Saran"
             />
           </div>
           <div className="bg-green-50 p-4 rounded-lg">
