@@ -67,7 +67,7 @@ const OrderDetail = () => {
   return (
     <Layout>
       <div
-        className="flex justify-center items-center min-h-screen bg-fixed bg-cover bg-center pt-10 pb-10"
+        className="flex justify-center items-center min-h-screen bg-fixed bg-cover bg-center pt-20 pb-10"
         style={{ backgroundImage: "url('../src/assets/bgForm.png')" }}
       >
         <div
