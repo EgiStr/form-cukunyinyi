@@ -34,13 +34,13 @@ const RegistrationForm = () => {
   const NO_REKENING = [
     {
       tipe: "mandiri",
-      norek: "32 324 3242",
-      nama: "Ani Swistani",
+      norek: "111 111 111",
+      nama: "CONTOH",
     },
     {
       tipe: "bca",
-      norek: "101 239 432",
-      nama: "Ani Swistani",
+      norek: "111 111 111",
+      nama: "CONTOH",
     },
   ];
   
@@ -200,14 +200,15 @@ const RegistrationForm = () => {
       const selectedGroupTypes = Object.entries(groupTypes)
         .filter(([, isSelected]) => isSelected)
         .map(([type]) => type);
+      let touristGroup = Object.keys(groupTypesClone)
+      .filter((key) => groupTypesClone[key])
+      .join(",")
       const finalFormData = {
         email: formData.email,
         date: formData.date,
         purpose: formData.purpose,
         touristType: participationType === "individu" ? "individual" : "group",
-        touristGroupType: Object.keys(groupTypesClone)
-          .filter((key) => groupTypesClone[key])
-          .join(","),
+        touristGroupType: touristGroup?touristGroup:"individu",
         touristCount:
           participationType === "individu"
             ? visitorCount
