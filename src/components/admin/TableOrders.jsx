@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { ORDERS_PATH } from '../../constant/apiPath';
@@ -12,19 +12,19 @@ const TableOrder = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState(null);
   const [isDeletingId, setIsDeletingId] = useState(null);
-  const [isRepostingId, setIsRepostingId] = useState(null);
+  const [isResendingId, setIsResendingId] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const checkAuth = () => {
+  const checkAuth = useCallback(() => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/login', { state: { from: '/order' } });
       return false;
     }
     return token;
-  };
+  }, [navigate]);
 
-  const fetchTableOrder = async () => {
+  const fetchTableOrder = useCallback(async () => {
     try {
       const token = checkAuth();
       if (!token) return;
@@ -63,13 +63,13 @@ const TableOrder = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [checkAuth, navigate, searchParams]);
 
   useEffect(() => {
     fetchTableOrder();
-  }, [navigate, searchParams]);
+  }, [fetchTableOrder]);
 
-  const formatDate = (dateString) => {
+  const formatDate = useCallback((dateString) => {
     try {
       return new Date(dateString).toLocaleDateString('id-ID', {
         year: 'numeric',
@@ -80,7 +80,7 @@ const TableOrder = () => {
       console.error('Date formatting error:', error);
       return dateString;
     }
-  };
+  }, []);
 
   const handleDelete = async (orderId) => {
     if (!window.confirm('Are you sure you want to delete this order?')) return;
@@ -95,12 +95,6 @@ const TableOrder = () => {
       setIsDeletingId(orderId);
       setError(null);
 
-      setOrderData(prevOrders => prevOrders.filter(order => order.id !== orderId));
-      setPagination(prev => ({
-        ...prev,
-        total: prev.total - 1,
-      }));
-
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -108,33 +102,45 @@ const TableOrder = () => {
       };
 
       await axios.delete(`${ORDERS_PATH.INDEX}/${orderId}`, config);
+      
+      await fetchTableOrder();
       alert('Order berhasil dihapus');
     } catch (err) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const response = await axios.get(ORDERS_PATH.INDEX, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-            params: {
-              page: currentPage,
-              perPage: pagination.perPage,
-              touristType: searchParams.get('touristType'),
-              sort: searchParams.get('sort'),
-              order: searchParams.get('order'),
-            },
-          });
-          setOrderData(response.data.data);
-          setPagination(response.data.pagination);
-        } catch {
-          setError('Failed to recover data after delete error');
-        }
-      }
       setError(err.response?.data?.message || err.message || 'Gagal menghapus order');
       alert('Gagal menghapus order');
     } finally {
       setIsDeletingId(null);
+    }
+  };
+
+  const handleResend = async (orderId) => {
+    if (!window.confirm('Are you sure you want to resend this order?')) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login', { state: { from: '/order' } });
+        return;
+      }
+
+      setIsResendingId(orderId);
+      setError(null);
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      };
+
+      await axios.post(ORDERS_PATH.RESEND(orderId), {}, config);
+      
+      await fetchTableOrder();
+      alert('Order berhasil dikirim ulang');
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || 'Failed to resend order');
+      alert('Gagal mengirim ulang order');
+    } finally {
+      setIsResendingId(null);
     }
   };
 
@@ -144,75 +150,26 @@ const TableOrder = () => {
     );
   }, [orderData, searchTerm]);
 
-  const handleRepost = async (order) => {
-    if (!window.confirm('Are you sure you want to repost this order?')) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        navigate('/login', { state: { from: '/order' } });
-        return;
-      }
-
-      setIsRepostingId(order.id);
-      setError(null);
-
-      const currentDate = new Date().toISOString().split('T')[0];
-      const repostData = {
-        date: currentDate,
-        purpose: order.purpose,
-        touristType: order.touristType,
-        touristGroupType: order.touristGroupType,
-        touristCount: order.touristCount,
-        paymentType: order.paymentType,
-        paymentProof: order.paymentType === 'tunai' ? 'Pembayaran Tunai' : order.paymentProof,
-        userInformation: order.userInformation,
-      };
-
-      const config = {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      };
-
-      const response = await axios.post(ORDERS_PATH.INDEX, repostData, config);
-
-      const newOrder = {
-        ...response.data.data,
-        id: response.data.data.id,
-      };
-
-      setOrderData(prevOrders => [newOrder, ...prevOrders]);
-      setPagination(prev => ({
-        ...prev,
-        total: prev.total + 1,
-      }));
-
-      alert('Order berhasil direpost');
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to repost order');
-      alert('Gagal merepost order');
-    } finally {
-      setIsRepostingId(null);
-    }
-  };
-
-  const handlePreviousPage = () => {
+  const handlePreviousPage = useCallback(() => {
     const page = parseInt(searchParams.get('page') || '1', 10);
     if (page > 1) {
-      setSearchParams({ page: page - 1 });
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('page', (page - 1).toString());
+      setSearchParams(newParams);
     }
-  };
+  }, [searchParams, setSearchParams]);
 
-  const handleNextPage = () => {
+  const handleNextPage = useCallback(() => {
     const page = parseInt(searchParams.get('page') || '1', 10);
     const totalPages = Math.ceil(pagination.total / pagination.perPage);
     if (page < totalPages) {
-      setSearchParams({ page: page + 1 });
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set('page', (page + 1).toString());
+      setSearchParams(newParams);
     }
-  };
+  }, [pagination.total, pagination.perPage, searchParams, setSearchParams]);
 
-  const handleFilter = (filter) => {
+  const handleFilter = useCallback((filter) => {
     const params = new URLSearchParams(searchParams);
     Object.keys(filter).forEach(key => {
       if (filter[key]) {
@@ -221,8 +178,9 @@ const TableOrder = () => {
         params.delete(key);
       }
     });
+    params.set('page', '1'); // Reset to first page when filtering
     setSearchParams(params);
-  };
+  }, [searchParams, setSearchParams]);
 
   if (loading) {
     return (
@@ -298,7 +256,6 @@ const TableOrder = () => {
         </div>
         <div className="flex items-center justify-between mb-4">
           <div className="space-x-2">
-            {/* Search input */}
             <div className="mb-4">
               <input
                 type="text"
@@ -352,15 +309,15 @@ const TableOrder = () => {
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-center space-y-2">
                     <button
-                      onClick={() => handleRepost(order)}
-                      disabled={isRepostingId === order.id}
+                      onClick={() => handleResend(order.id)}
+                      disabled={isResendingId === order.id}
                       className={`px-4 py-1 rounded text-white w-full ${
-                        isRepostingId === order.id 
+                        isResendingId === order.id 
                           ? 'bg-gray-400 cursor-not-allowed'
                           : 'bg-blue-500 hover:bg-blue-600 transition-colors'
                       }`}
                     >
-                      {isRepostingId === order.id ? 'Reposting...' : 'Repost'}
+                      {isResendingId === order.id ? 'Sending...' : 'Resend'}
                     </button>
                     <button
                       onClick={() => handleDelete(order.id)}
