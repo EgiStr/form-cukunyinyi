@@ -36,7 +36,7 @@ const Navbar = () => {
 
         <div className="hidden md:flex items-center space-x-6 text-gray-600">
           <Link to='/scan' className="hover:text-gray-800">Kenali Mangrove</Link>
-          <Link href="/" className="hover:text-gray-800">Daftar Wisata</Link>
+          <Link to="/" className="hover:text-gray-800">Daftar Wisata</Link>
           {isLoggedIn ? (
             <button
               onClick={handleLogout}
@@ -61,8 +61,8 @@ const Navbar = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="md:hidden absolute top-14 left-0 right-0 bg-white shadow-lg flex flex-col items-center space-y-4 py-4 text-gray-600 z-50">
-            <a href="/scan" className="hover:text-gray-800">Kenali Mangrove</a>
-            <a href="/" className="hover:text-gray-800">Daftar Wisata</a>
+            <Link to="/scan" className="hover:text-gray-800">Kenali Mangrove</Link>
+            <Link to="/" className="hover:text-gray-800">Daftar Wisata</Link>
             {isLoggedIn ? (
               <button
                 onClick={() => {

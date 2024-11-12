@@ -3,7 +3,7 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { ORDERS_PATH } from "@/constant/apiPath";
 import Layout from "@/components/Layout";
-import logo from "@/assets/logo.png";
+import welcome from "@/assets/welcome.jpg";
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -68,7 +68,7 @@ const OrderDetail = () => {
     <Layout>
       <div
         className="flex justify-center items-center min-h-screen bg-fixed bg-cover bg-center pt-20 pb-10"
-        style={{ backgroundImage: "url('../src/assets/bgForm.png')" }}
+        style={{ backgroundImage: `url(${welcome})` }}
       >
         <div
           className="bg-white container p-5 w-fit rounded-lg space-y-3"
@@ -79,7 +79,7 @@ const OrderDetail = () => {
           <div className="bg-green-500 text-white rounded px-5 py-3" id="badge">
             <p>
               Pendaftaran Sukses, Informasi tiket lengkap dikirimkan ke email{" "}
-              {orderData.email}
+              <strong>{orderData.email}</strong>
             </p>
           </div>
           <h1 className="text-lg font-medium">Informasi Pendaftar</h1>
