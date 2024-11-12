@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import { ORDERS_PATH } from "../constant/apiPath";
 import { postOrder } from "../service/api.service";
 
+import welcome from '@/assets/welcome.jpg';
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
@@ -270,7 +271,7 @@ const RegistrationForm = () => {
   return (
     <div
       className="min-h-screen bg-fixed bg-cover bg-center md:pt-20 pt-[100px] pb-5"
-      style={{ backgroundImage: "url('../src/assets/welcome.jpg')" }}
+      style={{ backgroundImage: `url(${welcome})` }}
     >
       <div className="bg-white bg-opacity-90 backdrop-blur-md w-full lg:w-6/12 md:w-9/12 mx-auto p-8 rounded-lg shadow-lg">
         <h1 className="font-semibold mb-2 text-xl md:text-2xl">
