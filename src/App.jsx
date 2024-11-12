@@ -17,11 +17,10 @@ function App() {
       <Routes>
         <Route path="/" element={<Order />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/admin/" element={<AdminPage />} />  
         <Route path="/tiket/:id" element={<OrderDetail />} />  
         <Route path="/scan" element={<KnowMangrove />} />  
         <Route path="/scan/hasil" element={<HasilMangrove />} />  
-        <Route path="/admin/orders" element={<AdminOrders />} />  
+        <Route path="/admin/" element={<AdminOrders />} />  
       </Routes>
     </Router>
     </ImageProvider>

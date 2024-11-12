@@ -12,8 +12,8 @@ const Sidebar = ({ children }) => {
   const toggleSidebar = () => setIsOpen(!isOpen);
 
   const menuItems = [
-    { path: '/admin', icon: <Home className="w-6 h-6" />, label: 'Home' },
-    { path: '/admin/orders', icon: <User className="w-6 h-6" />, label: 'Manajemen Orders' },
+    { path: '/', icon: <Home className="w-6 h-6" />, label: 'Home' },
+    { path: '/admin', icon: <User className="w-6 h-6" />, label: 'Manajemen Order' },
   ];
 
   const handleLogout = () => {

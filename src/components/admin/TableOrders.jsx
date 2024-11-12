@@ -75,6 +75,8 @@ const TableOrder = () => {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
       });
     } catch (error) {
       console.error('Date formatting error:', error);
@@ -207,7 +209,7 @@ const TableOrder = () => {
   if (orderData.length === 0 && currentPage === 1) {
     return (
       <div className="container mx-auto p-4 text-center">
-        <p className="text-gray-600">No orders found.</p>
+        <p className="text-gray-600">Tiket Tidak Ditemukan</p>
       </div>
     );
   }
@@ -281,6 +283,7 @@ const TableOrder = () => {
                 <th className="border border-gray-300 px-4 py-2">Metode Pembayaran</th>
                 <th className="border border-gray-300 px-4 py-2">Informasi Pengunjung</th>
                 <th className="border border-gray-300 px-4 py-2">Bukti Pembayaran</th>
+                <th className="border border-gray-300 px-4 py-2">Detail Tiket</th>
                 <th className="border border-gray-300 px-4 py-2">Aksi</th>
               </tr>
             </thead>
@@ -307,6 +310,7 @@ const TableOrder = () => {
                       }}
                     />:<p>Tunai</p>}
                   </td>
+                  <td className='border border-gray-300 px-4 py-2 text-center space-y-2'><a className='underline' href={`/tiket/${order.id}`}>Detail Tiket</a></td>
                   <td className="border border-gray-300 px-4 py-2 text-center space-y-2">
                     <button
                       onClick={() => handleResend(order.id)}
