@@ -83,7 +83,7 @@ const TableOrder = () => {
   }, []);
 
   const handleDelete = async (orderId) => {
-    if (!window.confirm('Are you sure you want to delete this order?')) return;
+    if (!window.confirm('Hapus tiket?')) return;
 
     try {
       const token = localStorage.getItem('token');
@@ -114,7 +114,7 @@ const TableOrder = () => {
   };
 
   const handleResend = async (orderId) => {
-    if (!window.confirm('Are you sure you want to resend this order?')) return;
+    if (!window.confirm('Kirim ulang tiket ke email?')) return;
 
     try {
       const token = localStorage.getItem('token');
@@ -219,7 +219,7 @@ const TableOrder = () => {
         {/* Filter and Search section */}
         <div className="flex items-center justify-between mb-4">
           <div className="space-x-2">
-            <label htmlFor="touristType" className="text-gray-700">Tourist Type:</label>
+            <label htmlFor="touristType" className="text-gray-700">Tipe Wisatawan</label>
             <select
               id="touristType"
               value={searchParams.get('touristType') || ''}
@@ -227,10 +227,10 @@ const TableOrder = () => {
               className="px-4 py-2 border border-gray-300 rounded"
             >
               <option value="">All</option>
-              <option value="Domestic">Domestic</option>
-              <option value="International">International</option>
+              <option value="wisata">Wisata</option>
+              <option value="penelitian">Penelitian</option>
             </select>
-            <label htmlFor="sort" className="text-gray-700">Sort By:</label>
+            <label htmlFor="sort" className="text-gray-700">Urutkan dengan</label>
             <select
               id="sort"
               value={searchParams.get('sort') || ''}
@@ -238,19 +238,19 @@ const TableOrder = () => {
               className="px-4 py-2 border border-gray-300 rounded"
             >
               <option value="">Default</option>
-              <option value="date">Date</option>
-              <option value="touristCount">Tourist Count</option>
-              <option value="totalPrice">Total Price</option>
+              <option value="date">Tanggal</option>
+              <option value="touristCount">Jumlah Turis</option>
+              <option value="totalPrice">Total Harga</option>
             </select>
-            <label htmlFor="order" className="text-gray-700">Order:</label>
+            <label htmlFor="order" className="text-gray-700">Urutkan :</label>
             <select
               id="order"
               value={searchParams.get('order') || ''}
               onChange={(e) => handleFilter({ order: e.target.value })}
               className="px-4 py-2 border border-gray-300 rounded"
             >
-              <option value="asc">Ascending</option>
-              <option value="desc">Descending</option>
+              <option value="asc">Terkecil ke Terbesar</option>
+              <option value="desc">Terbesar ke Terkecil</option>
             </select>
           </div>
         </div>
@@ -298,14 +298,14 @@ const TableOrder = () => {
                   <td className="border border-gray-300 px-4 py-2">{order.paymentType}</td>
                   <td className="border border-gray-300 px-4 py-2">{order.userInformation}</td>
                   <td className="border border-gray-300 px-4 py-2">
-                    <img 
+                    {order.paymentProof!="pembayaran Tunai"?<img 
                       src={order.paymentProof} 
                       alt="Pembayaran Tunai" 
                       className="w-16 h-16 object-cover"
                       onError={(e) => {
                         e.target.alt = 'Pembayaran Tunai';
                       }}
-                    />
+                    />:<p>Tunai</p>}
                   </td>
                   <td className="border border-gray-300 px-4 py-2 text-center space-y-2">
                     <button
@@ -317,7 +317,7 @@ const TableOrder = () => {
                           : 'bg-blue-500 hover:bg-blue-600 transition-colors'
                       }`}
                     >
-                      {isResendingId === order.id ? 'Sending...' : 'Resend'}
+                      {isResendingId === order.id ? 'Mengirim...' : 'Kirim Tiket'}
                     </button>
                     <button
                       onClick={() => handleDelete(order.id)}
@@ -328,7 +328,7 @@ const TableOrder = () => {
                           : 'bg-red-500 hover:bg-red-600 transition-colors'
                       }`}
                     >
-                      {isDeletingId === order.id ? 'Deleting...' : 'Delete'}
+                      {isDeletingId === order.id ? 'Deleting...' : 'Hapus'}
                     </button>
                   </td>
                 </tr>
