@@ -4,6 +4,8 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { ORDERS_PATH } from "../constant/apiPath";
 import { postOrder } from "../service/api.service";
+import logoMandiri from "@/assets/mandiri.png";
+import logoBCA from "@/assets/bca.png";
 
 import welcome from '@/assets/welcome.jpg';
 
@@ -34,11 +36,13 @@ const RegistrationForm = () => {
   const [showAccountNumber, setShowAccountNumber] = useState(true);
   const NO_REKENING = [
     {
+      logo:logoMandiri,
       tipe: "mandiri",
       norek: "111 111 111",
       nama: "CONTOH",
     },
     {
+      logo:logoBCA,
       tipe: "bca",
       norek: "111 111 111",
       nama: "CONTOH",
@@ -532,7 +536,7 @@ const RegistrationForm = () => {
                     <div key={index} className="p-2">
                       <div className="flex items-center gap-4">
                         <img
-                          src={`../src/assets/${rek.tipe}.png`}
+                          src={rek.logo}
                           className="w-10"
                         />
                         <div className="space-x-3">
