@@ -1,3 +1,4 @@
+import iteramengabdi from '@/assets/iteramengabdi.jpg'
 const Footer = () => {
   return (
     <footer className="bg-green-900 text-white py-6">
@@ -5,6 +6,7 @@ const Footer = () => {
         <div className="mb-4">
           <h3 className="text-2xl font-semibold">Ekowisata Cuku Nyi Nyi</h3>
           <a className="text-white" href="https://www.ecowisatacukunyinyi.com/">Website Utama<br></br>https://www.ecowisatacukunyinyi.com/</a>
+          <img className='w-52 rounded mt-5' src={iteramengabdi}/>
         </div>
         <div>
           <h1 className="text-lg font-bold">Menu</h1>
