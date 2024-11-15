@@ -6,12 +6,15 @@ import { ORDERS_PATH } from "../constant/apiPath";
 import { postOrder } from "../service/api.service";
 import logoMandiri from "@/assets/mandiri.png";
 import logoBCA from "@/assets/bca.png";
-
-import welcome from '@/assets/welcome.jpg';
+import provinsi from "@/daerah/provinsi.json"
+import welcome from "@/assets/welcome.jpg";
 
 const RegistrationForm = () => {
   const navigate = useNavigate();
   const [visitorCount, setVisitorCount] = useState(1);
+  const [listKabupaten,setListKabupaten] = useState([]);
+  const [kab, setKabupaten] = useState(null);
+  const [prov, setProv] = useState(null);
   const [participationType, setParticipationType] = useState("individu");
   const [groupTypesLainnya, setGroupTypesLainnya] = useState(null);
   const [groupTypes, setGroupTypes] = useState({
@@ -36,19 +39,31 @@ const RegistrationForm = () => {
   const [showAccountNumber, setShowAccountNumber] = useState(true);
   const NO_REKENING = [
     {
-      logo:logoMandiri,
+      logo: logoMandiri,
       tipe: "mandiri",
       norek: "111 111 111",
       nama: "CONTOH",
     },
     {
-      logo:logoBCA,
+      logo: logoBCA,
       tipe: "bca",
       norek: "111 111 111",
       nama: "CONTOH",
     },
   ];
-  
+
+
+  const handleProvinsi = (event) =>{
+    let id = event.target.value
+    setProv(provinsi[id])
+    let importKab = import(`@/daerah/kab-${id}.json`);
+    importKab.then(x=>{
+      setListKabupaten(x.default)
+    }).catch(err=>{
+      throw err
+    })
+  }
+
   const PRICE_PER_VISITOR = 50000;
   const calculateTotalPrice = () => {
     // if (participationType === "individu") {
@@ -206,14 +221,16 @@ const RegistrationForm = () => {
         .filter(([, isSelected]) => isSelected)
         .map(([type]) => type);
       let touristGroup = Object.keys(groupTypesClone)
-      .filter((key) => groupTypesClone[key])
-      .join(",")
+        .filter((key) => groupTypesClone[key])
+        .join(",");
       const finalFormData = {
         email: formData.email,
+        provinsi: prov,
+        kabupaten: formData.kabupaten,
         date: formData.date,
         purpose: formData.purpose,
         touristType: participationType === "individu" ? "individual" : "group",
-        touristGroupType: touristGroup?touristGroup:"individu",
+        touristGroupType: touristGroup ? touristGroup : "individu",
         touristCount:
           participationType === "individu"
             ? visitorCount
@@ -267,11 +284,10 @@ const RegistrationForm = () => {
   };
 
   const copyText = (text) => {
-    navigator.clipboard.writeText(text)
-      .then(() => {
-        alert("No rekening telah tersalin!");
-      })
-  }
+    navigator.clipboard.writeText(text).then(() => {
+      alert("No rekening telah tersalin!");
+    });
+  };
   return (
     <div
       className="min-h-screen bg-fixed bg-cover bg-center md:pt-20 pt-[100px] pb-5"
@@ -309,6 +325,56 @@ const RegistrationForm = () => {
               placeholder="Email"
               required
             />
+          </div>
+
+          <div className="p-4 bg-white border rounded-lg">
+            <div className="flex gap-2 items-center">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              class="icon icon-tabler icons-tabler-filled icon-tabler-map-pin"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path d="M18.364 4.636a9 9 0 0 1 .203 12.519l-.203 .21l-4.243 4.242a3 3 0 0 1 -4.097 .135l-.144 -.135l-4.244 -4.243a9 9 0 0 1 12.728 -12.728zm-6.364 3.364a3 3 0 1 0 0 6a3 3 0 0 0 0 -6z" />
+            </svg>
+            <h3>Asal Daerah</h3>
+            </div>
+            <div>
+              <label className="flex gap-1 my-2 font-semibold">
+                Provinsi
+              </label>
+              <select
+                name="provinsi"
+                value={formData.provinsi}
+                onChange={(ev)=>handleProvinsi(ev)}
+                className="w-full border rounded-lg px-4 py-2"
+                placeholder="Provinsi"
+                required
+              >
+                <option disabled selected>Asal Provinsi Anda</option>
+                {Object.keys(provinsi).map(prov=><option value={prov}>{provinsi[prov]}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="flex gap-1 my-2 font-semibold">
+                Kabupaten
+              </label>
+              <select
+                name="kabupaten"
+                value={formData.kabupaten}
+                onChange={handleInputChange}
+                className="w-full border rounded-lg px-4 py-2"
+                placeholder="Kabupaten"
+                required
+              >
+                <option disabled selected>Asal Kabupaten Anda</option>
+                {Object.keys(listKabupaten).map(kab=><option value={listKabupaten[kab]}>{listKabupaten[kab]}</option>)}
+              </select>
+            </div>
           </div>
 
           <div>
@@ -531,24 +597,25 @@ const RegistrationForm = () => {
               >
                 Lihat Nomor Rekening
               </button> */}
-                {
-                  NO_REKENING.map((rek, index) => (
-                    <div key={index} className="p-2">
-                      <div className="flex items-center gap-4">
-                        <img
-                          src={rek.logo}
-                          className="w-10"
-                        />
-                        <div className="space-x-3">
-                          <span>{rek.tipe.toUpperCase()}</span>
-                          <span className="font-bold" onClick={(e)=>{
-                            copyText(e.target.innerText)
-                          }}>{rek.norek}</span>
-                          <span>({rek.nama})</span>
-                        </div>
+                {NO_REKENING.map((rek, index) => (
+                  <div key={index} className="p-2">
+                    <div className="flex items-center gap-4">
+                      <img src={rek.logo} className="w-10" />
+                      <div className="space-x-3">
+                        <span>{rek.tipe.toUpperCase()}</span>
+                        <span
+                          className="font-bold"
+                          onClick={(e) => {
+                            copyText(e.target.innerText);
+                          }}
+                        >
+                          {rek.norek}
+                        </span>
+                        <span>({rek.nama})</span>
                       </div>
                     </div>
-                  ))}
+                  </div>
+                ))}
               </div>
             )}
 

@@ -95,6 +95,14 @@ const OrderDetail = () => {
               <p>{orderData.email}</p>
             </div>
             <div className="flex flex-col md:flex-row justify-between w-full">
+              <p className="font-semibold">Asal Provinsi</p>
+              <p>{orderData.provinsi}</p>
+            </div>
+            <div className="flex flex-col md:flex-row justify-between w-full">
+              <p className="font-semibold">Asal Kabupaten</p>
+              <p>{orderData.kabupaten}</p>
+            </div>
+            <div className="flex flex-col md:flex-row justify-between w-full">
               <p className="font-semibold">Tanggal</p>
               <p>{new Date(orderData.date).toLocaleDateString()}</p>
             </div>
