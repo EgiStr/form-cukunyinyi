@@ -80,6 +80,8 @@ const OrderDetail = () => {
             <p>
               Pendaftaran Sukses, Informasi tiket lengkap dikirimkan ke email{" "}
               <strong>{orderData.email}</strong>
+              <br/>
+              <em>Mohon cek Spam jika email tidak masuk</em>
             </p>
           </div>
           <h1 className="text-lg font-medium">Informasi Pendaftar</h1>
